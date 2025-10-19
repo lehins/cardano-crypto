@@ -12,6 +12,7 @@ module Cardano.Crypto.Wallet.Encrypted
     , encryptedChainCode
     , encryptedDerivePrivate
     , encryptedDerivePublic
+    , wallet_encrypted_decrypt
     ) where
 
 import           Control.DeepSeq
@@ -224,3 +225,9 @@ foreign import ccall "wallet_encrypted_change_pass"
                                  -> Ptr PassPhrase -> Word32
                                  -> Ptr EncryptedKey
                                  -> IO ()
+
+foreign import ccall "wallet_encrypted_decrypt"
+    wallet_encrypted_decrypt :: Ptr Word8
+                             -> Ptr EncryptedKey
+                             -> Ptr PassPhrase -> Word32
+                             -> IO ()

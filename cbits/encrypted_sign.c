@@ -399,3 +399,10 @@ int wallet_encrypted_derive_public
 
 	return 0;
 }
+
+
+void wallet_encrypted_decrypt
+     (ed25519_secret_key priv_key, encrypted_key const *encrypted_key, uint8_t const* pass, uint32_t const pass_len)
+{
+	unencrypt_start(pass, pass_len, encrypted_key, priv_key);
+}

@@ -30,6 +30,7 @@ module Cardano.Crypto.Wallet
     , pattern LatestScheme
     -- * Extended Private & Public types
     , XPrv
+    , decryptXPrv
     , XPub(..)
     , XSignature
     , generate
@@ -58,7 +59,7 @@ import           Crypto.Error                    (throwCryptoError, CryptoFailab
 import qualified Crypto.MAC.HMAC                 as HMAC
 import qualified Crypto.PubKey.Ed25519           as Ed25519
 import           Crypto.KDF.PBKDF2               (fastPBKDF2_SHA512, Parameters(..))
-import           Data.ByteArray                  (ByteArrayAccess, convert)
+import           Data.ByteArray --                 (ByteArrayAccess, convert)
 import qualified Data.ByteArray                  as B (append, length, splitAt)
 import           Data.ByteString                 (ByteString)
 import qualified Data.ByteString.Char8           as BC
@@ -70,7 +71,7 @@ import           Cardano.Crypto.Wallet.Encrypted
 import           Cardano.Crypto.Wallet.Pure      ({-XPub (..),-} hFinalize,
                                                   hInitSeed)
 import           Cardano.Crypto.Wallet.Types
-
+import System.IO.Unsafe
 import           GHC.Stack
 
 newtype XPrv = XPrv EncryptedKey
@@ -87,6 +88,14 @@ instance Hashable XPub
 newtype XSignature = XSignature
     { unXSignature :: ByteString
     } deriving (Show, Eq, Ord, NFData, Hashable, ByteArrayAccess)
+
+decryptXPrv :: (ByteArrayAccess passPhrase, ByteArray ba) => passPhrase -> XPrv -> ba
+decryptXPrv passPhrase xPrv =
+  unsafePerformIO $
+    withByteArray (unXPrv xPrv) $ \encPtr ->
+      withByteArray passPhrase $ \passPhrasePtr ->
+        alloc 32 $ \ptr ->
+          wallet_encrypted_decrypt ptr encPtr passPhrasePtr (fromIntegral (B.length passPhrase))
 
 -- | Generate a new XPrv
 --
